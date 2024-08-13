@@ -1,9 +1,54 @@
 package main
 
-import "net/http"
+import (
+	"bufio"
+	"encoding/json"
+	"log"
+	"net/http"
+	"strings"
+)
 
 func handleMessages(w http.ResponseWriter, r *http.Request) {
 
+	var body SendMessageRequestBody
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	res, err := ai(body.Message.Text)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer res.Close()
+
+	scanner := bufio.NewScanner(res)
+
+	var wholeResponse string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "data:") {
+			data := strings.TrimPrefix(line, "data:")
+			if strings.HasSuffix(data, "[DONE]") {
+				break
+			}
+			var body MessageSSE
+			if err := json.Unmarshal([]byte(data), &body); err != nil {
+				log.Fatal("Unable to unmarshal SSE", err)
+			}
+			wholeResponse += body.Message
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Write([]byte(wholeResponse))
 }
 
 func handleMessagingPostbacks(w http.ResponseWriter, r *http.Request) {
@@ -28,10 +73,10 @@ func handleVerification(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	ai()
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/messages", handleMessages)
+	mux.HandleFunc("POST /messages", handleMessages)
 	mux.HandleFunc("/verify", handleVerification)
 
 	http.ListenAndServe(":8080", mux)
