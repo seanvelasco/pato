@@ -96,19 +96,23 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Received message: %s", m.Message.Text)
 				log.Printf("Sent by %s", m.Sender.ID)
 
-				completion, err := generateAnswer("m.Message.Text")
+				go func() {
+					completion, err := generateAnswer(m.Message.Text)
 
-				if err != nil {
-					log.Println(err)
-				}
+					log.Println(completion)
 
-				x, err := send_message(m.Recipient.ID, m.Sender.ID, completion)
+					if err != nil {
+						log.Println(err)
+					}
 
-				if err != nil {
-					fmt.Println(err)
-				}
+					x, err := send_message(m.Recipient.ID, m.Sender.ID, completion)
 
-				fmt.Println(x)
+					if err != nil {
+						fmt.Println(err)
+					}
+
+					fmt.Println(x)
+				}()
 			}
 		}
 

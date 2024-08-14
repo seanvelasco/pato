@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -38,6 +39,7 @@ func send_message(pageID string, recipientID string, text string) (SendMessageRe
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	res, err := http.DefaultClient.Do(req)
 
@@ -48,6 +50,8 @@ func send_message(pageID string, recipientID string, text string) (SendMessageRe
 	defer res.Body.Close()
 
 	var res_body SendMessageResponse
+
+	log.Println(res.Status, res.StatusCode)
 
 	if err := json.NewDecoder(res.Body).Decode(&res_body); err != nil {
 		return SendMessageResponse{}, err
