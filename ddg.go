@@ -25,7 +25,7 @@ func ai(content string) (io.ReadCloser, error) {
 	u, _ := url.Parse("https://duckduckgo.com/duckchat/v1/chat")
 
 	prompt := Prompt{
-		Model: "gpt-4o-mini",
+		Model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
 		Messages: []PromptMessage{
 			{
 				Role:    "user",
@@ -36,18 +36,25 @@ func ai(content string) (io.ReadCloser, error) {
 
 	body, _ := json.Marshal(prompt)
 
-	vqd, err := vqd(prompt)
-
-	if err != nil {
-		return nil, err
-	}
+	//vqd, err := vqd(prompt)
+	//
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	req, _ := http.NewRequest("POST", u.String(), bytes.NewReader(body))
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0")
 	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-vqd-4", vqd)
+	req.Header.Set("x-vqd-4", "4-267030941856431541085535292874624219683")
+	req.Header.Set("Sec-GPC", "1")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Priority", "u=4")
+	req.Header.Set("credentials", "include")
 
 	res, err := http.DefaultClient.Do(req)
 
