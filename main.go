@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -62,8 +63,9 @@ func handleVerification(w http.ResponseWriter, r *http.Request) {
 	challenge := q.Get("hub.challenge")
 
 	if mode != "" && token != "" {
-		if mode == "subscribe" && token == "123abcxyz" {
-			_, _ = w.Write([]byte(challenge))
+		if mode == "subscribe" && token == os.Getenv("META_MESSENGER_VERIFY_TOKEN") {
+			w.Write([]byte(challenge))
+
 			return
 		}
 		w.WriteHeader(http.StatusForbidden)
@@ -77,7 +79,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /messages", handleMessages)
-	mux.HandleFunc("/verify", handleVerification)
+	mux.HandleFunc("GET /messenger", handleVerification)
 
 	http.ListenAndServe(":8080", mux)
 }
