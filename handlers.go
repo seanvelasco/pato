@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
@@ -9,8 +8,38 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 )
+
+//res, err := ai(body.Message.Text)
+//
+//if err != nil {
+//log.Fatal(err)
+//}
+//
+//defer res.Close()
+
+//scanner := bufio.NewScanner(res)
+//
+//var wholeResponse string
+//
+//for scanner.Scan() {
+// line := scanner.Text()
+//if strings.HasPrefix(line, "data:") {
+//data := strings.TrimPrefix(line, "data:")
+//if strings.HasSuffix(data, "[DONE]") {
+//break
+//}
+//var body MessageSSE
+//if err := json.Unmarshal([]byte(data), &body); err != nil {
+//log.Fatal("Unable to unmarshal SSE", err)
+//}
+//wholeResponse += body.Message
+//}
+//}
+//
+//if err := scanner.Err(); err != nil {
+//log.Fatal(err)
+//}
 
 func handlePing(w http.ResponseWriter, r *http.Request) {
 
@@ -24,66 +53,46 @@ func validateSignature(signature string, secret string) bool {
 }
 
 func handleMessages(w http.ResponseWriter, r *http.Request) {
-	signature := r.Header.Get("x-hub-signature-256")
-	appSecret := os.Getenv("META_APP_SECRET")
+	//signature := r.Header.Get("x-hub-signature-256")
+	//appSecret := os.Getenv("META_APP_SECRET")
+	//
+	//if signature == "" || appSecret == "" {
+	//	w.WriteHeader(http.StatusBadRequest)
+	//	return
+	//}
+	//
+	//if signature != appSecret {
+	//	w.WriteHeader(http.StatusForbidden)
+	//	return
+	//}
+	//
+	//signatureUnicode := strings.ReplaceAll(signature, "ä", "\\u00e4")
+	//signaturePart := strings.Split(signatureUnicode, ":")[1]
+	//
+	//if validateSignature(signaturePart, appSecret) != true {
+	//	w.WriteHeader(http.StatusForbidden)
+	//	return
+	//}
 
-	if signature == "" || appSecret == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	if signature != appSecret {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	signatureUnicode := strings.ReplaceAll(signature, "ä", "\\u00e4")
-	signaturePart := strings.Split(signatureUnicode, ":")[1]
-
-	if validateSignature(signaturePart, appSecret) != true {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
-
-	var body SendMessageRequestBody
+	var body WebhookEvent
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	res, err := ai(body.Message.Text)
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("EVENT RECEIVED"))
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	message := body.Value.Message.Text
 
-	defer res.Close()
+	log.Println(message)
 
-	scanner := bufio.NewScanner(res)
+	//for _, entry := range body. {
+	//	for _, messaging := range entry.Messaging {
+	//		log.Println(messaging.Message)
+	//	}
+	//}
 
-	var wholeResponse string
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "data:") {
-			data := strings.TrimPrefix(line, "data:")
-			if strings.HasSuffix(data, "[DONE]") {
-				break
-			}
-			var body MessageSSE
-			if err := json.Unmarshal([]byte(data), &body); err != nil {
-				log.Fatal("Unable to unmarshal SSE", err)
-			}
-			wholeResponse += body.Message
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-
-	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	w.Write([]byte(wholeResponse))
 }
 
 func handleMessagingPostbacks(w http.ResponseWriter, r *http.Request) {
