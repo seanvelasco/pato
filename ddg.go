@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -52,6 +53,10 @@ func ai(content string) (io.ReadCloser, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("status code %d", res.StatusCode)
 	}
 
 	return res.Body, nil

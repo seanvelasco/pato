@@ -97,15 +97,15 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 				log.Printf("Sent by %s", m.Sender.ID)
 
 				go func() {
-					completion, err := generateAnswer(m.Message.Text)
+					//completion, err := generateAnswer(m.Message.Text)
+					//
+					//log.Println(completion)
+					//
+					//if err != nil {
+					//	log.Println(err)
+					//}
 
-					log.Println(completion)
-
-					if err != nil {
-						log.Println(err)
-					}
-
-					x, err := send_message(m.Recipient.ID, m.Sender.ID, completion)
+					x, err := send_message(m.Recipient.ID, m.Sender.ID, m.Message.Text)
 
 					if err != nil {
 						fmt.Println(err)
