@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"log"
+	"errors"
 	"net/http"
 	"net/url"
 	"os"
@@ -43,6 +43,10 @@ func send_message(pageID string, recipientID string, text string) (SendMessageRe
 
 	res, err := http.DefaultClient.Do(req)
 
+	if res.StatusCode != http.StatusOK {
+		return SendMessageResponse{}, errors.New("Bad status code: " + res.Status)
+	}
+
 	if err != nil {
 		return SendMessageResponse{}, err
 	}
@@ -50,8 +54,6 @@ func send_message(pageID string, recipientID string, text string) (SendMessageRe
 	defer res.Body.Close()
 
 	var res_body SendMessageResponse
-
-	log.Println(res.Status, res.StatusCode)
 
 	if err := json.NewDecoder(res.Body).Decode(&res_body); err != nil {
 		return SendMessageResponse{}, err
