@@ -25,7 +25,7 @@ func ai(content string) (io.ReadCloser, error) {
 
 	prompt := Prompt{
 		Model: "gpt-4o-mini",
-		Messages: []Message{
+		Messages: []PromptMessage{
 			{
 				Role:    "user",
 				Content: content,

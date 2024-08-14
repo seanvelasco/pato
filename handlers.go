@@ -1,47 +1,52 @@
 package main
 
 import (
+	"bufio"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 )
 
-//res, err := ai(body.Message.Text)
-//
-//if err != nil {
-//log.Fatal(err)
-//}
-//
-//defer res.Close()
+func generateAnswer(prompt string) (string, error) {
+	res, err := ai(prompt)
 
-//scanner := bufio.NewScanner(res)
-//
-//var wholeResponse string
-//
-//for scanner.Scan() {
-// line := scanner.Text()
-//if strings.HasPrefix(line, "data:") {
-//data := strings.TrimPrefix(line, "data:")
-//if strings.HasSuffix(data, "[DONE]") {
-//break
-//}
-//var body MessageSSE
-//if err := json.Unmarshal([]byte(data), &body); err != nil {
-//log.Fatal("Unable to unmarshal SSE", err)
-//}
-//wholeResponse += body.Message
-//}
-//}
-//
-//if err := scanner.Err(); err != nil {
-//log.Fatal(err)
-//}
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Close()
+
+	scanner := bufio.NewScanner(res)
+
+	var wholeResponse string
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "data:") {
+			data := strings.TrimPrefix(line, "data:")
+			if strings.HasSuffix(data, "[DONE]") {
+				break
+			}
+			var body MessageSSE
+			if err := json.Unmarshal([]byte(data), &body); err != nil {
+				log.Fatal("Unable to unmarshal SSE", err)
+			}
+			wholeResponse += body.Message
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return wholeResponse, nil
+}
 
 func handlePing(w http.ResponseWriter, r *http.Request) {
 
@@ -89,21 +94,28 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 		if entry.Messaging != nil {
 			for _, m := range entry.Messaging {
 				log.Printf("Received message: %s", m.Message.Text)
-				log.Printf("Sent by %s", m.Sender.Id)
+				log.Printf("Sent by %s", m.Sender.ID)
+
+				completion, err := generateAnswer("m.Message.Text")
+
+				if err != nil {
+					log.Println(err)
+				}
+
+				x, err := send_message(m.Recipient.ID, m.Sender.ID, completion)
+
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				fmt.Println(x)
 			}
 		}
 
 	}
 
-	bytes, err := io.ReadAll(r.Body)
-
-	fmt.Println(string(bytes))
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-
 	w.Header().Set("Content-Type", "text/plain")
+
 	w.Write([]byte("EVENT RECEIVED"))
 
 	//for _, entry := range body. {
