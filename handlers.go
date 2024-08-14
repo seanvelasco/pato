@@ -4,7 +4,8 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -74,18 +75,26 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	var body WebhookEvent
+	//var body WebhookEvent
+	//
+	//if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	//	w.WriteHeader(http.StatusBadRequest)
+	//}
+	//
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	defer r.Body.Close()
+
+	bytes, err := io.ReadAll(r.Body)
+
+	log.Println(string(bytes))
+	fmt.Println(string(bytes))
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte("EVENT RECEIVED"))
-
-	message := body.Value.Message.Text
-
-	log.Println(message)
 
 	//for _, entry := range body. {
 	//	for _, messaging := range entry.Messaging {
