@@ -37,7 +37,8 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	signaturePart := strings.Split(signature, ":")[1]
+	signatureUnicode := strings.ReplaceAll(signature, "ä", "\\u00e4")
+	signaturePart := strings.Split(signatureUnicode, ":")[1]
 
 	if validateSignature(signaturePart, appSecret) != true {
 		w.WriteHeader(http.StatusForbidden)
