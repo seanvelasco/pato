@@ -11,7 +11,7 @@ import (
 )
 
 func SendMessage(chatID string, text string) (Message, error) {
-	u, err := url.Parse(fmt.Sprintf("https://api.telegram.org/bot%s", os.Getenv("TELEGRAM_BOT_TOKEN")))
+	u, err := url.Parse(fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", os.Getenv("TELEGRAM_BOT_TOKEN")))
 	if err != nil {
 		return Message{}, err
 	}
