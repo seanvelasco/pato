@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"github.com/seanvelasco/pato/ddg"
 	"github.com/seanvelasco/pato/messenger"
+	"github.com/seanvelasco/pato/telegram"
 	"log"
 	"net/http"
 	"os"
@@ -116,11 +117,32 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("EVENT RECEIVED"))
 
-	//for _, entry := range body. {
-	//	for _, messaging := range entry.Messaging {
-	//		log.Println(messaging.Message)
-	//	}
-	//}
+}
+
+func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
+	var body telegram.Update
+
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	if body.Message == nil {
+		w.WriteHeader(http.StatusBadRequest)
+	}
+
+	go func() {
+		completion, err := generateAnswer(body.Message.Text)
+		if err != nil {
+			log.Println("Unable to generate completion:", err)
+			if _, err := telegram.SendMessage(body.Message.From.Username, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
+				log.Println("Unable to send a Telegram message:", err)
+				return
+			}
+		}
+		if _, err := telegram.SendMessage(body.Message.From.Username, completion); err != nil {
+			log.Println("Unable to send a Telegram message:", err)
+		}
+	}()
 
 }
 
