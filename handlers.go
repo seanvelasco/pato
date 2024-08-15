@@ -96,13 +96,13 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 				go func() {
 					completion, err := generateAnswer(m.Message.Text)
 					if err != nil {
-						log.Println(err)
+						log.Println("Unable to generate answer:", err)
 						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
-							log.Println(err)
+							log.Fatal("Unable to send a Messenger message:", err)
 						}
 					}
 					if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, completion); err != nil {
-						log.Println(err)
+						log.Fatal("Unable to send a Messenger message:", err)
 					}
 				}()
 			}

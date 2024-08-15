@@ -3,7 +3,7 @@ package ddg
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -63,7 +63,7 @@ func AI(content string) (io.ReadCloser, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("status code %d", res.StatusCode)
+		return nil, errors.New(res.Status)
 	}
 
 	return res.Body, nil

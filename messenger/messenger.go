@@ -50,7 +50,7 @@ func SendMessage(pageID string, recipientID string, text string) (SendMessageRes
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return SendMessageResponse{}, errors.New("Bad status code: " + res.Status)
+		return SendMessageResponse{}, errors.New(res.Status)
 	}
 
 	var resBody SendMessageResponse
