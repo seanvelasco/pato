@@ -99,7 +99,7 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 					completion, err := generateAnswer(m.Message.Text)
 					if err != nil {
 						log.Println("Unable to generate completion:", err)
-						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
+						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, BREAK); err != nil {
 							log.Println("Unable to send a Messenger message:", err)
 							return
 						}
@@ -111,13 +111,7 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 				}()
 			}
 		}
-
 	}
-
-	w.Header().Set("Content-Type", "text/plain")
-
-	w.Write([]byte("EVENT RECEIVED"))
-
 }
 
 func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
@@ -127,27 +121,24 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	if body.Message == nil {
-		w.WriteHeader(http.StatusBadRequest)
-	}
-
 	log.Println("Update:", body)
+	log.Println(body.Message.Chat.ID)
 
 	go func() {
 		completion, err := generateAnswer(body.Message.Text)
 		chatId := strconv.Itoa(body.Message.Chat.ID)
 		if err != nil {
 			log.Println("Unable to generate completion:", err)
-			if _, err := telegram.SendMessage(chatId, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
+			if _, err := telegram.SendMessage(chatId, BREAK); err != nil {
 				log.Println("Unable to send a Telegram message:", err)
 				return
 			}
 		}
 		if _, err := telegram.SendMessage(chatId, completion); err != nil {
 			log.Println("Unable to send a Telegram message:", err)
+			return
 		}
 	}()
-
 }
 
 func handleMessagingPostbacks(w http.ResponseWriter, r *http.Request) {

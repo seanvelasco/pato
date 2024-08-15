@@ -32,9 +32,9 @@ type Message struct {
 }
 
 type Update struct {
-	UpdatedID         int      `json:"updated_id"`
-	Message           *Message `json:"message,omitempty"` // why is this a pointer? any benefits?
-	EditedMessage     *Message `json:"edited_message,omitempty"`
-	ChannelPost       *Message `json:"channel_post,omitempty"`
-	EditedChannelPost *Message `json:"edited_channel,omitempty"`
+	UpdatedID         int     `json:"updated_id"`
+	Message           Message `json:"message,omitempty"` // why is this a pointer? any benefits?
+	EditedMessage     Message `json:"edited_message,omitempty"`
+	ChannelPost       Message `json:"channel_post,omitempty"`
+	EditedChannelPost Message `json:"edited_channel,omitempty"`
 }
