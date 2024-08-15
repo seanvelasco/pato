@@ -131,6 +131,8 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
+	log.Println("Update:", body)
+
 	go func() {
 		completion, err := generateAnswer(body.Message.Text)
 		chatId := strconv.Itoa(body.Message.Chat.ID)
