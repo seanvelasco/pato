@@ -3,6 +3,7 @@ package telegram
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,7 +11,10 @@ import (
 )
 
 func SendMessage(chatID string, text string) (Message, error) {
-	u, _ := url.Parse("https://api.telegram.org/bot" + os.Getenv("TELEGRAM_BOT_TOKEN"))
+	u, err := url.Parse(fmt.Sprintf("https://api.telegram.org/bot%s", os.Getenv("TELEGRAM_BOT_TOKEN")))
+	if err != nil {
+		return Message{}, err
+	}
 	q := u.Query()
 	q.Set("chat_id", os.Getenv(chatID))
 	q.Set("text", text)
