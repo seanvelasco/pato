@@ -16,7 +16,7 @@ func SendMessage(chatID string, text string) (Message, error) {
 		return Message{}, err
 	}
 	q := u.Query()
-	q.Set("chat_id", os.Getenv(chatID))
+	q.Set("chat_id", chatID)
 	q.Set("text", text)
 	u.RawQuery = q.Encode()
 
