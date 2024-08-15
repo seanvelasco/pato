@@ -36,7 +36,7 @@ func generateAnswer(prompt string) (string, error) {
 			}
 			var body MessageSSE
 			if err := json.Unmarshal([]byte(data), &body); err != nil {
-				log.Fatal("Unable to unmarshal SSE", err)
+				log.Println("Unable to unmarshal SSE", err)
 			}
 			wholeResponse += body.Message
 		}
@@ -98,11 +98,11 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Println("Unable to generate answer:", err)
 						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
-							log.Fatal("Unable to send a Messenger message:", err)
+							log.Println("Unable to send a Messenger message:", err)
 						}
 					}
 					if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, completion); err != nil {
-						log.Fatal("Unable to send a Messenger message:", err)
+						log.Println("Unable to send a Messenger message:", err)
 					}
 				}()
 			}
