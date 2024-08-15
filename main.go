@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 )
 
@@ -12,5 +13,8 @@ func main() {
 	mux.HandleFunc("GET /messenger", handleVerification)
 	mux.HandleFunc("POST /messenger", handleMessages)
 
-	http.ListenAndServe(":8080", mux)
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		log.Fatal(err)
+	}
+
 }

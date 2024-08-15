@@ -6,7 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
+	"github.com/seanvelasco/pato/ddg"
+	"github.com/seanvelasco/pato/messenger"
 	"log"
 	"net/http"
 	"os"
@@ -14,7 +15,7 @@ import (
 )
 
 func generateAnswer(prompt string) (string, error) {
-	res, err := ai(prompt)
+	res, err := ddg.AI(prompt)
 
 	if err != nil {
 		return "", err
@@ -90,28 +91,19 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	for _, entry := range body.Entry {
-		log.Println(entry.Id)
 		if entry.Messaging != nil {
 			for _, m := range entry.Messaging {
-				log.Printf("Received message: %s", m.Message.Text)
-				log.Printf("Sent by %s", m.Sender.ID)
-
 				go func() {
 					completion, err := generateAnswer(m.Message.Text)
-
-					log.Println(completion)
-
 					if err != nil {
 						log.Println(err)
+						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
+							log.Println(err)
+						}
 					}
-
-					x, err := send_message(m.Recipient.ID, m.Sender.ID, completion)
-
-					if err != nil {
-						fmt.Println(err)
+					if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, completion); err != nil {
+						log.Println(err)
 					}
-
-					fmt.Println(x)
 				}()
 			}
 		}

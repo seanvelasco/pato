@@ -1,4 +1,4 @@
-package main
+package ddg
 
 import (
 	"bytes"
@@ -21,12 +21,12 @@ func vqd(prompt Prompt) (string, error) {
 	return "4-264950795912270085190654548782964737427", nil
 }
 
-func ai(content string) (io.ReadCloser, error) {
+func AI(content string) (io.ReadCloser, error) {
 	u, _ := url.Parse("https://duckduckgo.com/duckchat/v1/chat")
 
 	prompt := Prompt{
 		Model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-		Messages: []PromptMessage{
+		Messages: []Message{
 			{
 				Role:    "user",
 				Content: content,

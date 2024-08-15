@@ -1,4 +1,4 @@
-package main
+package messenger
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func send_message(pageID string, recipientID string, text string) (SendMessageResponse, error) {
+func SendMessage(pageID string, recipientID string, text string) (SendMessageResponse, error) {
 	u, err := url.Parse("https://graph.facebook.com/v20.0/" + pageID + "/messages")
 	if err != nil {
 		return SendMessageResponse{}, err
@@ -43,21 +43,21 @@ func send_message(pageID string, recipientID string, text string) (SendMessageRe
 
 	res, err := http.DefaultClient.Do(req)
 
-	if res.StatusCode != http.StatusOK {
-		return SendMessageResponse{}, errors.New("Bad status code: " + res.Status)
-	}
-
 	if err != nil {
 		return SendMessageResponse{}, err
 	}
 
 	defer res.Body.Close()
 
-	var res_body SendMessageResponse
+	if res.StatusCode != http.StatusOK {
+		return SendMessageResponse{}, errors.New("Bad status code: " + res.Status)
+	}
 
-	if err := json.NewDecoder(res.Body).Decode(&res_body); err != nil {
+	var resBody SendMessageResponse
+
+	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
 		return SendMessageResponse{}, err
 	}
 
-	return res_body, nil
+	return resBody, nil
 }
