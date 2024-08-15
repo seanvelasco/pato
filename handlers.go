@@ -12,6 +12,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -132,14 +133,15 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		completion, err := generateAnswer(body.Message.Text)
+		chatId := strconv.Itoa(body.Message.Chat.ID)
 		if err != nil {
 			log.Println("Unable to generate completion:", err)
-			if _, err := telegram.SendMessage(body.Message.From.Username, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
+			if _, err := telegram.SendMessage(chatId, "Pato is taking a break. Pato will be back back in a few moments!"); err != nil {
 				log.Println("Unable to send a Telegram message:", err)
 				return
 			}
 		}
-		if _, err := telegram.SendMessage(body.Message.From.Username, completion); err != nil {
+		if _, err := telegram.SendMessage(chatId, completion); err != nil {
 			log.Println("Unable to send a Telegram message:", err)
 		}
 	}()
