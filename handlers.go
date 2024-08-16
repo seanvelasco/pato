@@ -101,10 +101,9 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 						log.Println("Unable to generate completion:", err)
 						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, BREAK); err != nil {
 							log.Println("Unable to send a Messenger message:", err)
-							return
 						}
+						return
 					}
-					log.Println("Completion:", completion)
 					if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, completion); err != nil {
 						log.Println("Unable to send a Messenger message:", err)
 					}
@@ -121,9 +120,6 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
-	log.Println("Update:", body)
-	log.Println(body.Message.Chat.ID)
-
 	go func() {
 		completion, err := generateAnswer(body.Message.Text)
 		chatID := strconv.Itoa(body.Message.Chat.ID)
@@ -132,18 +128,13 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 			log.Println("Unable to generate completion:", err)
 			if _, err := telegram.SendMessage(chatID, BREAK, messageID); err != nil {
 				log.Println("Unable to send a Telegram message:", err)
-				return
 			}
+			return
 		}
 		if _, err := telegram.SendMessage(chatID, completion, messageID); err != nil {
 			log.Println("Unable to send a Telegram message:", err)
-			return
 		}
 	}()
-}
-
-func handleMessagingPostbacks(w http.ResponseWriter, r *http.Request) {
-
 }
 
 func handleVerification(w http.ResponseWriter, r *http.Request) {
