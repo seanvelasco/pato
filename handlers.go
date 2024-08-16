@@ -84,7 +84,7 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	var body WebhookEvent
+	var body messenger.MessageEvent
 
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		w.WriteHeader(http.StatusBadRequest)

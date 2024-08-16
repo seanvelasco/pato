@@ -27,7 +27,7 @@ func SendMessage(pageID string, recipientID string, text string) (SendMessageRes
 			ID: recipientID,
 		},
 		MessagingType: "RESPONSE",
-		Message: Message{
+		Message: SendMessageMessage{
 			Text: text,
 		},
 	}

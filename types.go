@@ -24,31 +24,3 @@ type EndSSE struct {
 type SSEType interface {
 	StartSSE | MessageSSE | EndSSE
 }
-
-type User struct {
-	ID string `json:"id"`
-}
-
-type MessageReplyTo struct {
-	MID string `json:"mid"`
-}
-
-type Message struct {
-	MID     string         `json:"mid,omitempty"`
-	Text    string         `json:"text"`
-	ReplyTo MessageReplyTo `json:"reply_to,omitempty"`
-}
-
-type WebhookEvent struct {
-	Object string `json:"object"`
-	Entry  []struct {
-		Id        string `json:"id"`
-		Time      int    `json:"time"`
-		Messaging []struct {
-			Sender    User    `json:"sender"`
-			Recipient User    `json:"recipient"`
-			Timestamp int     `json:"timestamp"`
-			Message   Message `json:"message"`
-		} `json:"messaging"`
-	} `json:"entry"`
-}
