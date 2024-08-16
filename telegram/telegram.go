@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func SendMessage(chatID string, text string) (Message, error) {
+func SendMessage(chatID string, text string, replyToMessageID string) (Message, error) {
 	u, err := url.Parse(fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", os.Getenv("TELEGRAM_BOT_TOKEN")))
 	if err != nil {
 		return Message{}, err
@@ -18,6 +18,8 @@ func SendMessage(chatID string, text string) (Message, error) {
 	q := u.Query()
 	q.Set("chat_id", chatID)
 	q.Set("text", text)
+	q.Set("reply_to_message_id", replyToMessageID)
+
 	u.RawQuery = q.Encode()
 
 	res, err := http.Get(u.String())

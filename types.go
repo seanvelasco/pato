@@ -2,7 +2,7 @@ package main
 
 type SSE struct {
 	Created int    `json:"created"`
-	Id      string `json:"id"`
+	ID      string `json:"id"`
 	Action  string `json:"action"`
 	Model   string `json:"model"`
 }

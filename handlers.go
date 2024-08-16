@@ -126,15 +126,16 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		completion, err := generateAnswer(body.Message.Text)
-		chatId := strconv.Itoa(body.Message.Chat.ID)
+		chatID := strconv.Itoa(body.Message.Chat.ID)
+		messageID := strconv.Itoa(body.Message.MessageID)
 		if err != nil {
 			log.Println("Unable to generate completion:", err)
-			if _, err := telegram.SendMessage(chatId, BREAK); err != nil {
+			if _, err := telegram.SendMessage(chatID, BREAK, messageID); err != nil {
 				log.Println("Unable to send a Telegram message:", err)
 				return
 			}
 		}
-		if _, err := telegram.SendMessage(chatId, completion); err != nil {
+		if _, err := telegram.SendMessage(chatID, completion, messageID); err != nil {
 			log.Println("Unable to send a Telegram message:", err)
 			return
 		}
