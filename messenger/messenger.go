@@ -29,9 +29,9 @@ func SendMessage(pageID string, recipientID string, messageID string, text strin
 		MessagingType: "RESPONSE",
 		Message: Message{
 			Text: text,
-			ReplyTo: struct {
-				MID string `json:"mid"`
-			}{MID: messageID},
+			ReplyTo: MessageReplyTo{
+				MID: messageID,
+			},
 		},
 	}
 

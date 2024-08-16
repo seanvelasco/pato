@@ -4,11 +4,13 @@ type User struct {
 	ID string `json:"id"`
 }
 
+type MessageReplyTo struct {
+	MID string `json:"mid"`
+}
+
 type Message struct {
-	Text    string `json:"text"`
-	ReplyTo struct {
-		MID string `json:"mid"`
-	} `json:"reply_to,omitempty"`
+	Text    string         `json:"text"`
+	ReplyTo MessageReplyTo `json:"reply_to,omitempty"`
 }
 
 type SendMessageRequest struct {
