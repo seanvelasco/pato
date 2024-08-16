@@ -9,7 +9,7 @@ import (
 	"net/url"
 )
 
-func vqd(prompt Prompt) (string, error) {
+func getVQD(prompt Prompt) (string, error) {
 	u, _ := url.Parse("https://duckduckgo.com/")
 	q := u.Query()
 	q.Set("q", "DuckDuckGo AI Chat")
@@ -18,7 +18,7 @@ func vqd(prompt Prompt) (string, error) {
 	q.Set("atb", "v425-1")
 	u.RawQuery = q.Encode()
 
-	return "4-264950795912270085190654548782964737427", nil
+	return "128763328289690301316563025964306385877", nil
 }
 
 func AI(content string) (io.ReadCloser, error) {
@@ -36,11 +36,11 @@ func AI(content string) (io.ReadCloser, error) {
 
 	body, _ := json.Marshal(prompt)
 
-	//vqd, err := vqd(prompt)
-	//
-	//if err != nil {
-	//	return nil, err
-	//}
+	vqd, err := getVQD(prompt)
+
+	if err != nil {
+		return nil, err
+	}
 
 	req, _ := http.NewRequest("POST", u.String(), bytes.NewReader(body))
 
@@ -48,7 +48,7 @@ func AI(content string) (io.ReadCloser, error) {
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-vqd-4", "4-267030941856431541085535292874624219683")
+	req.Header.Set("x-vqd-4", vqd)
 	req.Header.Set("Sec-GPC", "1")
 	req.Header.Set("Sec-Fetch-Dest", "empty")
 	req.Header.Set("Sec-Fetch-Mode", "cors")
@@ -63,7 +63,8 @@ func AI(content string) (io.ReadCloser, error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return nil, errors.New(res.Status)
+		resBody, _ := io.ReadAll(res.Body)
+		return nil, errors.New(string(resBody))
 	}
 
 	return res.Body, nil
