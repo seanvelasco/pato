@@ -4,16 +4,20 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 )
 
 func SendMessage(pageID string, recipientID string, text string) (SendMessageResponse, error) {
-	u, err := url.Parse("https://graph.facebook.com/v20.0/" + pageID + "/messages")
+	u, err := url.Parse(fmt.Sprintf("https://graph.facebook.com/v20.0/%s/messages", pageID))
 	if err != nil {
 		return SendMessageResponse{}, err
 	}
+
 	q := u.Query()
 	q.Set("access_token", os.Getenv("META_PAGE_ACCESS_TOKEN"))
 	u.RawQuery = q.Encode()
@@ -30,9 +34,13 @@ func SendMessage(pageID string, recipientID string, text string) (SendMessageRes
 		},
 	}
 
-	reqBody, _ := json.Marshal(response)
+	reqBody, err := json.Marshal(response)
 
-	req, err := http.NewRequest("POST", u.String(), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return SendMessageResponse{}, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), bytes.NewReader(reqBody))
 
 	if err != nil {
 		return SendMessageResponse{}, err
@@ -41,7 +49,9 @@ func SendMessage(pageID string, recipientID string, text string) (SendMessageRes
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	res, err := http.DefaultClient.Do(req)
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	res, err := client.Do(req)
 
 	if err != nil {
 		return SendMessageResponse{}, err
@@ -50,7 +60,8 @@ func SendMessage(pageID string, recipientID string, text string) (SendMessageRes
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return SendMessageResponse{}, errors.New(res.Status)
+		resBody, _ := io.ReadAll(res.Body)
+		return SendMessageResponse{}, errors.New(string(resBody))
 	}
 
 	var resBody SendMessageResponse
