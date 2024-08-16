@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func SendMessage(pageID string, recipientID string, text string) (SendMessageResponse, error) {
+func SendMessage(pageID string, recipientID string, messageID string, text string) (SendMessageResponse, error) {
 	u, err := url.Parse(fmt.Sprintf("https://graph.facebook.com/v20.0/%s/messages", pageID))
 	if err != nil {
 		return SendMessageResponse{}, err
@@ -29,6 +29,9 @@ func SendMessage(pageID string, recipientID string, text string) (SendMessageRes
 		MessagingType: "RESPONSE",
 		Message: SendMessageMessage{
 			Text: text,
+			ReplyTo: struct {
+				MessageID string `json:"message_id"`
+			}{MessageID: messageID},
 		},
 	}
 

@@ -5,7 +5,10 @@ type User struct {
 }
 
 type SendMessageMessage struct { // I, know :(
-	Text string `json:"text"`
+	Text    string `json:"text"`
+	ReplyTo struct {
+		MessageID string `json:"message_id"`
+	}
 }
 
 type SendMessageRequest struct {
