@@ -21,6 +21,45 @@ func getVQD(prompt Prompt) (string, error) {
 	return "128763328289690301316563025964306385877", nil
 }
 
+func TextSearch(query string) (TextResults, error) {
+	u, _ := url.Parse("https://links.duckduckgo.com/d.js")
+
+	q := u.Query()
+
+	q.Set("q", query)
+	q.Set("o", "json")
+	q.Set("vqd", "4-285355687614794448936815138382008580033")
+	q.Set("kl", "us-en")
+	q.Set("l", "us-en")
+
+	u.RawQuery = q.Encode()
+
+	req, _ := http.NewRequest("GET", u.String(), nil)
+
+	req.Header.Set("Host", "links.duckduckgo.com")
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return TextResults{}, err
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		resBody, _ := io.ReadAll(res.Body)
+		return TextResults{}, errors.New(string(resBody))
+	}
+
+	var body TextResults
+
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+		return TextResults{}, err
+	}
+
+	return body, nil
+}
+
 func AI(content string) (io.ReadCloser, error) {
 	u, _ := url.Parse("https://duckduckgo.com/duckchat/v1/chat")
 

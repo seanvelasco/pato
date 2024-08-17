@@ -9,3 +9,13 @@ type Prompt struct {
 	Model    string    `json:"model"`
 	Messages []Message `json:"messages"`
 }
+
+type TextResults struct {
+	Results []TextResult `json:"results"`
+}
+
+type TextResult struct {
+	Body  string `json:"a"`
+	Title string `json:"t"`
+	URL   string `json:"u"`
+}
