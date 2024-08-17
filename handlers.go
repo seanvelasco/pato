@@ -17,7 +17,7 @@ import (
 )
 
 func generateAnswer(prompt string) (string, error) {
-	res, err := ddg.AI(prompt)
+	res, err := ddg.Chat(prompt)
 
 	if err != nil {
 		return "", err
