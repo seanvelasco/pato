@@ -136,7 +136,7 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 		messageID := strconv.Itoa(body.Message.MessageID)
 		for _, result := range results.Results {
 			if result.Title != "" {
-				if _, err := telegram.SendMessage(chatID, fmt.Sprintf("*%s*\n\n%s\n\n(%s)", result.Title, result.Body, result.URL), messageID); err != nil {
+				if _, err := telegram.SendMessage(chatID, fmt.Sprintf("**%s**\n\n%s\n\nSource: %s", result.Title, result.Body, result.URL), messageID); err != nil {
 					log.Println("Unable to send a Telegram message:", err)
 				}
 			}

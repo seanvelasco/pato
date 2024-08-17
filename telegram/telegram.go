@@ -21,6 +21,7 @@ func SendMessage(chatID string, text string, replyToMessageID string) (Message, 
 	q.Set("chat_id", chatID)
 	q.Set("text", text)
 	q.Set("reply_to_message_id", replyToMessageID)
+	q.Set("parse_mode", "markdown")
 	u.RawQuery = q.Encode()
 
 	req, err := http.NewRequest(http.MethodPost, u.String(), nil)
