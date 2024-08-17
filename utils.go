@@ -6,8 +6,8 @@ import (
 )
 
 func formatString(result string) string {
-	result = strings.ReplaceAll(result, "<b>", "*")
-	result = strings.ReplaceAll(result, "</b>", "*")
+	result = strings.ReplaceAll(result, "<b>", "**")
+	result = strings.ReplaceAll(result, "</b>", "**")
 	return html.UnescapeString(result)
 }
 
