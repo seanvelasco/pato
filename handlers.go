@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"github.com/seanvelasco/pato/ddg"
 	"github.com/seanvelasco/pato/messenger"
 	"github.com/seanvelasco/pato/telegram"
@@ -121,9 +122,18 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		completion, err := generateAnswer(body.Message.Text)
+		results, err := ddg.TextSearch(body.Message.Text)
+		if err != nil {
+			log.Println("Unable to search text:", err)
+		}
 		chatID := strconv.Itoa(body.Message.Chat.ID)
 		messageID := strconv.Itoa(body.Message.MessageID)
+		for _, result := range results.Results {
+			if _, err := telegram.SendMessage(chatID, fmt.Sprintf("%s(%s)\n%s", result.Title, result.URL, result.Body), messageID); err != nil {
+				log.Println("Unable to send a Telegram message:", err)
+			}
+		}
+		completion, err := generateAnswer(body.Message.Text)
 		if err != nil {
 			log.Println("Unable to generate completion:", err)
 			if _, err := telegram.SendMessage(chatID, BREAK, messageID); err != nil {

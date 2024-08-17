@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -116,6 +117,8 @@ func TextSearch(query string) (TextResults, error) {
 func Chat(content string) (io.ReadCloser, error) {
 
 	vqd, err := getVQD(content)
+
+	log.Println("VQD found for Chat", vqd)
 
 	if err != nil {
 		return nil, err
