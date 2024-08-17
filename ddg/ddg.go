@@ -5,36 +5,87 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 )
 
-func getVQD(prompt Prompt) (string, error) {
-	u, _ := url.Parse("https://duckduckgo.com/")
-	q := u.Query()
-	q.Set("q", "DuckDuckGo AI Chat")
-	q.Set("ia", "chat")
-	q.Set("duckai", "1")
-	q.Set("atb", "v425-1")
-	u.RawQuery = q.Encode()
+func extractVQD(body []byte) (string, error) {
 
-	return "128763328289690301316563025964306385877", nil
+	re := regexp.MustCompile(`vqd=([^,]+)`)
+
+	matches := re.FindSubmatch(body)
+
+	if len(matches) < 2 {
+		return "", errors.New("no VQD found")
+	}
+
+	return strings.Trim(string(matches[1]), "\""), nil
+}
+
+func getVQD(query string) (string, error) {
+	u, _ := url.Parse("https://duckduckgo.com")
+
+	body := &bytes.Buffer{} // new(bytes.Buffer)
+
+	writer := multipart.NewWriter(body)
+
+	writer.WriteField("q", query)
+
+	err := writer.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u.String(), body)
+
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer res.Body.Close()
+
+	bodyBytes, err := io.ReadAll(res.Body)
+
+	return extractVQD(bodyBytes)
 }
 
 func TextSearch(query string) (TextResults, error) {
+	vqd, err := getVQD(query)
+
+	if err != nil {
+		return TextResults{}, err
+	}
+
 	u, _ := url.Parse("https://links.duckduckgo.com/d.js")
 
 	q := u.Query()
 
 	q.Set("q", query)
 	q.Set("o", "json")
-	q.Set("vqd", "4-285355687614794448936815138382008580033")
+	q.Set("vqd", vqd)
 	q.Set("kl", "us-en")
 	q.Set("l", "us-en")
+	// Unsure if these params are needed
+	q.Set("p", "")
+	q.Set("s", "0")
+	q.Set("df", "d")
+	q.Set("bing_market", "EN-US")
 
 	u.RawQuery = q.Encode()
 
-	req, _ := http.NewRequest("GET", u.String(), nil)
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
 
 	req.Header.Set("Host", "links.duckduckgo.com")
 
@@ -51,16 +102,25 @@ func TextSearch(query string) (TextResults, error) {
 		return TextResults{}, errors.New(string(resBody))
 	}
 
+	// DDG can also return an error while having a http.StatusOK status code
+
 	var body TextResults
 
 	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
-		return TextResults{}, err
+		return TextResults{}, errors.New("Unable to parse response into TextSearch")
 	}
 
 	return body, nil
 }
 
-func AI(content string) (io.ReadCloser, error) {
+func Chat(content string) (io.ReadCloser, error) {
+
+	vqd, err := getVQD(content)
+
+	if err != nil {
+		return nil, err
+	}
+
 	u, _ := url.Parse("https://duckduckgo.com/duckchat/v1/chat")
 
 	prompt := Prompt{
@@ -74,12 +134,6 @@ func AI(content string) (io.ReadCloser, error) {
 	}
 
 	body, _ := json.Marshal(prompt)
-
-	vqd, err := getVQD(prompt)
-
-	if err != nil {
-		return nil, err
-	}
 
 	req, _ := http.NewRequest("POST", u.String(), bytes.NewReader(body))
 
