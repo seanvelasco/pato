@@ -126,11 +126,19 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Println("Unable to search text:", err)
 		}
+
+		for i, r := range results.Results {
+			results.Results[i].Title = removeHTMLBTag(r.Title)
+			results.Results[i].Body = formatString(r.Body)
+		}
+
 		chatID := strconv.Itoa(body.Message.Chat.ID)
 		messageID := strconv.Itoa(body.Message.MessageID)
 		for _, result := range results.Results {
-			if _, err := telegram.SendMessage(chatID, fmt.Sprintf("%s(%s)\n%s", result.Title, result.URL, result.Body), messageID); err != nil {
-				log.Println("Unable to send a Telegram message:", err)
+			if result.Title != "" {
+				if _, err := telegram.SendMessage(chatID, fmt.Sprintf("*%s*\n%s\nSource: (%s)", result.Title, result.Body, result.URL), messageID); err != nil {
+					log.Println("Unable to send a Telegram message:", err)
+				}
 			}
 		}
 		completion, err := generateAnswer(body.Message.Text)
