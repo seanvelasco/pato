@@ -6,70 +6,20 @@ import (
 	"errors"
 	"io"
 	"log"
-	"mime/multipart"
 	"net/http"
 	"net/url"
-	"regexp"
-	"strings"
 )
 
-func extractVQD(body []byte) (string, error) {
-
-	re := regexp.MustCompile(`vqd=([^,]+)`)
-
-	matches := re.FindSubmatch(body)
-
-	if len(matches) < 2 {
-		return "", errors.New("no VQD found")
-	}
-
-	return strings.Trim(string(matches[1]), "\""), nil
-}
-
-func getVQD(query string) (string, error) {
-	u, _ := url.Parse("https://duckduckgo.com")
-
-	body := &bytes.Buffer{} // new(bytes.Buffer)
-
-	writer := multipart.NewWriter(body)
-
-	writer.WriteField("q", query)
-
-	err := writer.Close()
-
-	if err != nil {
-		return "", err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, u.String(), body)
-
-	if err != nil {
-		return "", err
-	}
-
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	res, err := http.DefaultClient.Do(req)
-
-	if err != nil {
-		return "", err
-	}
-
-	defer res.Body.Close()
-
-	bodyBytes, err := io.ReadAll(res.Body)
-
-	return extractVQD(bodyBytes)
-}
-
 func TextSearch(query string) (TextResults, error) {
-	vqd, err := getVQD(query)
+	vqd, err := getSearchVQD(query)
 
 	if err != nil {
 		return TextResults{}, err
 	}
 
-	u, _ := url.Parse("https://links.duckduckgo.com/d.js")
+	log.Println("Search VQD:", vqd)
+
+	u, _ := url.Parse(TEXT_ENDPOINT)
 
 	q := u.Query()
 
@@ -88,7 +38,7 @@ func TextSearch(query string) (TextResults, error) {
 
 	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
 
-	req.Header.Set("Host", "links.duckduckgo.com")
+	req.Header.Set("Host", u.Host)
 
 	res, err := http.DefaultClient.Do(req)
 
@@ -114,9 +64,59 @@ func TextSearch(query string) (TextResults, error) {
 	return body, nil
 }
 
+func ImageSearch(query string) (ImageResults, error) {
+	vqd, err := getSearchVQD(query)
+
+	if err != nil {
+		return ImageResults{}, err
+	}
+
+	log.Println("Search VQD:", vqd)
+
+	u, _ := url.Parse(IMAGE_ENDPOINT)
+
+	q := u.Query()
+
+	q.Set("q", query) // Query
+	q.Set("vqd", vqd)
+	q.Set("o", "json")         // OUTPUT: json, html
+	q.Set("l", "us-en")        // REGION: wt-wt, us-en, uk-en, ru-ru
+	q.Set("p", SAFE_SEARCH_ON) // SAFE SEARCH: on, moderate off
+	q.Set("s", "0")
+	q.Set("f", ",,,,,")
+
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+
+	//req.Header.Set("Host", "links.duckduckgo.com")
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return ImageResults{}, err
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		resBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return ImageResults{}, errors.New(res.Status)
+		}
+		return ImageResults{}, errors.New(string(resBody))
+	}
+
+	var body ImageResults
+
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+		return ImageResults{}, errors.New("Unable to parse response into ImageSearch")
+	}
+
+	return body, nil
+}
+
 func Chat(content string) (io.ReadCloser, error) {
 
-	vqd, err := getVQD(content)
+	vqd, err := getChatVQD()
 
 	log.Println("VQD found for Chat", vqd)
 
@@ -124,10 +124,10 @@ func Chat(content string) (io.ReadCloser, error) {
 		return nil, err
 	}
 
-	u, _ := url.Parse("https://duckduckgo.com/duckchat/v1/chat")
+	u, _ := url.Parse(CHAT_ENDPOINT)
 
 	prompt := Prompt{
-		Model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+		Model: LLAMA_3_70B,
 		Messages: []Message{
 			{
 				Role:    "user",
