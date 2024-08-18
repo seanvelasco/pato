@@ -77,6 +77,8 @@ func ImageSearch(query string) (ImageResults, error) {
 
 	q := u.Query()
 
+	// https://duckduckgo.com/i.js?l=us-en&o=json&q=psyduck&vqd=4-147640926027049301930189049575851889757&f=,,,,,&p=1
+
 	q.Set("q", query) // Query
 	q.Set("vqd", vqd)
 	q.Set("o", "json")         // OUTPUT: json, html
@@ -85,9 +87,9 @@ func ImageSearch(query string) (ImageResults, error) {
 	q.Set("s", "0")
 	q.Set("f", ",,,,,")
 
-	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	u.RawQuery = q.Encode()
 
-	//req.Header.Set("Host", "links.duckduckgo.com")
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
 
 	res, err := http.DefaultClient.Do(req)
 
@@ -118,7 +120,7 @@ func Chat(content string) (io.ReadCloser, error) {
 
 	vqd, err := getChatVQD()
 
-	log.Println("VQD found for Chat", vqd)
+	log.Println("VQD found for Chat", vqd.Get("x-vqd-4"))
 
 	if err != nil {
 		return nil, err
@@ -140,17 +142,13 @@ func Chat(content string) (io.ReadCloser, error) {
 
 	req, _ := http.NewRequest("POST", u.String(), bytes.NewReader(body))
 
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0")
-	req.Header.Set("Accept", "text/event-stream")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-vqd-4", vqd)
-	req.Header.Set("Sec-GPC", "1")
-	req.Header.Set("Sec-Fetch-Dest", "empty")
-	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("Priority", "u=4")
-	req.Header.Set("credentials", "include")
+	//req.Header.Set("Content-Type", "application/json")
+	//req.Header.Set("Host", u.Host)
+	//req.Header.Set("Connection", "keep-alive")
+	//req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:129.0) Gecko/20100101 Firefox/129.0")
+	//req.Header.Set("x-vqd-4", "4-257864896927281724418427422564929565235")
+	//req.Header.Set("Accept", "text/event-stream")
+	req.Header = vqd
 
 	res, err := http.DefaultClient.Do(req)
 

@@ -60,26 +60,26 @@ func getSearchVQD(query string) (string, error) {
 	return extractVQD(bodyBytes)
 }
 
-func getChatVQD() (string, error) {
+func getChatVQD() (http.Header, error) {
 	req, _ := http.NewRequest(http.MethodGet, CHAT_STATUS, nil)
 	req.Header.Set("x-vqd-accept", "1")
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(res.Body)
-		return "", errors.New(string(body))
+		return nil, errors.New(string(body))
 	}
 
-	vqd := res.Header.Get("x-vqd-4")
+	//vqd := res.Header.Get("x-vqd-4")
 
-	if vqd == "" {
-		return "", errors.New("no VQD found")
-	}
+	//if vqd == "" {
+	//	return nil, errors.New("no VQD found")
+	//}
 
-	return vqd, nil
+	return res.Header, nil
 }
