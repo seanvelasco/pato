@@ -35,3 +35,7 @@ type ImageResult struct {
 	Width     int    `json:"width"`
 	Source    string `json:"source"`
 }
+
+type Suggestions []struct {
+	Phrase string `json:"phrase"`
+}

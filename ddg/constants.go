@@ -1,12 +1,13 @@
 package ddg
 
 const (
-	BASE           = "https://duckduckgo.com"
-	TEXT_ENDPOINT  = "https://links.duckduckgo.com/d.js"
-	IMAGE_ENDPOINT = "https://duckduckgo.com/i.js"
-	NEWS_ENDPOINT  = ""
-	CHAT_ENDPOINT  = "https://duckduckgo.com/duckchat/v1/chat"
-	CHAT_STATUS    = "https://duckduckgo.com/duckchat/v1/status"
+	BASE                 = "https://duckduckgo.com"
+	TEXT_ENDPOINT        = "https://links.duckduckgo.com/d.js"
+	IMAGE_ENDPOINT       = "https://duckduckgo.com/i.js"
+	NEWS_ENDPOINT        = ""
+	SUGGESTIONS_ENDPOINT = "https://duckduckgo.com/ac"
+	CHAT_ENDPOINT        = "https://duckduckgo.com/duckchat/v1/chat"
+	CHAT_STATUS          = "https://duckduckgo.com/duckchat/v1/status"
 )
 
 const (

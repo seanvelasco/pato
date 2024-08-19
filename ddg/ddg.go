@@ -10,6 +10,35 @@ import (
 	"net/url"
 )
 
+func SearchSuggestions(query string) (Suggestions, error) {
+	u, _ := url.Parse(SUGGESTIONS_ENDPOINT)
+	q := u.Query()
+	q.Set("q", query)
+	q.Set("kl", "en-us")
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	var body Suggestions
+
+	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
+		return Suggestions{}, errors.New("Unable to parse response into Suggestions")
+	}
+
+	return body, nil
+}
+
 func TextSearch(query string) (TextResults, error) {
 	vqd, err := getSearchVQD(query)
 
@@ -120,11 +149,11 @@ func Chat(content string) (io.ReadCloser, error) {
 
 	vqd, err := getChatVQD()
 
-	log.Println("VQD found for Chat", vqd.Get("x-vqd-4"))
-
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("VQD found for Chat", vqd.Get("x-vqd-4"))
 
 	u, _ := url.Parse(CHAT_ENDPOINT)
 
