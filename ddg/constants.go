@@ -8,6 +8,7 @@ const (
 	SUGGESTIONS_ENDPOINT = "https://duckduckgo.com/ac"
 	CHAT_ENDPOINT        = "https://duckduckgo.com/duckchat/v1/chat"
 	CHAT_STATUS          = "https://duckduckgo.com/duckchat/v1/status"
+	ASSIST_ENDPOINT      = "https://duckduckgo.com/qna.js"
 )
 
 const (

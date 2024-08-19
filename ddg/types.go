@@ -36,6 +36,24 @@ type ImageResult struct {
 	Source    string `json:"source"`
 }
 
-type Suggestions []struct {
+type SuggestionResults []struct {
 	Phrase string `json:"phrase"`
+}
+
+type SearchAssistArticle struct {
+	Site string `json:"site"`
+	Link string `json:"link"`
+	Text string `json:"text"`
+}
+
+type SearchAssistSource struct {
+	Article SearchAssistArticle `json:"article"`
+	Section struct{}            `json:"section"`
+}
+
+type SearchAssistResults struct {
+	Timestamp string               `json:"timestamp"`
+	Action    string               `json:"action"`
+	Answer    string               `json:"answer"`
+	Sources   []SearchAssistSource `json:"sources"`
 }

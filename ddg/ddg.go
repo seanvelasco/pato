@@ -10,7 +10,57 @@ import (
 	"net/url"
 )
 
-func SearchSuggestions(query string) (Suggestions, error) {
+func SearchAssist(query string) (SearchAssistResults, error) {
+	vqd, err := getSearchVQD(query)
+
+	if err != nil {
+		return SearchAssistResults{}, err
+	}
+
+	u, _ := url.Parse(ASSIST_ENDPOINT)
+	q := u.Query()
+	q.Set("q", query)
+	q.Set("vqd", vqd)
+	q.Set("shadow_webrag", "1")
+	u.RawQuery = q.Encode()
+
+	body, _ := json.Marshal(struct {
+		q string `json:"q"`
+	}{
+		q: query,
+	})
+
+	req, err := http.NewRequest("GET", u.String(), bytes.NewReader(body))
+
+	if err != nil {
+		return SearchAssistResults{}, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return SearchAssistResults{}, err
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		resBody, _ := io.ReadAll(res.Body)
+		return SearchAssistResults{}, errors.New(string(resBody))
+	}
+
+	var results SearchAssistResults
+
+	if err := json.NewDecoder(res.Body).Decode(&results); err != nil {
+		resBody, _ := io.ReadAll(res.Body)
+		log.Println(string(resBody), res.StatusCode)
+		return SearchAssistResults{}, errors.New("unable to parse response into SearchAssistResults")
+	}
+
+	return results, nil
+}
+
+func SearchSuggestions(query string) (SuggestionResults, error) {
 	u, _ := url.Parse(SUGGESTIONS_ENDPOINT)
 	q := u.Query()
 	q.Set("q", query)
@@ -30,10 +80,10 @@ func SearchSuggestions(query string) (Suggestions, error) {
 
 	defer res.Body.Close()
 
-	var body Suggestions
+	var body SuggestionResults
 
 	if err := json.NewDecoder(res.Body).Decode(&body); err != nil {
-		return Suggestions{}, errors.New("Unable to parse response into Suggestions")
+		return SuggestionResults{}, errors.New("unable to parse response into SuggestionResults")
 	}
 
 	return body, nil
@@ -105,8 +155,6 @@ func ImageSearch(query string) (ImageResults, error) {
 	u, _ := url.Parse(IMAGE_ENDPOINT)
 
 	q := u.Query()
-
-	// https://duckduckgo.com/i.js?l=us-en&o=json&q=psyduck&vqd=4-147640926027049301930189049575851889757&f=,,,,,&p=1
 
 	q.Set("q", query) // Query
 	q.Set("vqd", vqd)
