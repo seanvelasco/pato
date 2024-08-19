@@ -1,55 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/seanvelasco/pato/ddg"
 	"github.com/seanvelasco/pato/messenger"
 	"github.com/seanvelasco/pato/telegram"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 )
-
-func GenerateAnswer(prompt string) (string, error) {
-	res, err := ddg.Chat(prompt)
-
-	if err != nil {
-		return "", err
-	}
-
-	defer res.Close()
-
-	scanner := bufio.NewScanner(res)
-
-	var wholeResponse string
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "data:") {
-			data := strings.TrimPrefix(line, "data:")
-			if strings.HasSuffix(data, "[DONE]") {
-				break
-			}
-			var body MessageSSE
-			if err := json.Unmarshal([]byte(data), &body); err != nil {
-				log.Println("Unable to unmarshal SSE", err)
-			}
-			wholeResponse += body.Message
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return "", err
-	}
-
-	return wholeResponse, nil
-}
 
 func handlePing(w http.ResponseWriter, r *http.Request) {
 
@@ -96,7 +58,7 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 		if entry.Messaging != nil {
 			for _, m := range entry.Messaging {
 				go func() {
-					completion, err := GenerateAnswer(m.Message.Text)
+					completion, err := generateCompleteAnswer(m.Message.Text)
 					if err != nil {
 						log.Println("Unable to generate completion:", err)
 						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, m.Message.MID, BREAK); err != nil {
@@ -140,7 +102,7 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 		//		}
 		//	}
 		//}
-		completion, err := GenerateAnswer(body.Message.Text)
+		completion, err := generateCompleteAnswer(body.Message.Text)
 		if err != nil {
 			log.Println("Unable to generate completion:", err)
 			if _, err := telegram.SendMessage(chatID, BREAK, messageID); err != nil {
