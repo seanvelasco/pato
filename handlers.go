@@ -58,7 +58,7 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 		if entry.Messaging != nil {
 			for _, m := range entry.Messaging {
 				go func() {
-					completion, err := generateCompleteAnswer(m.Message.Text)
+					answer, _, err := processQuery(m.Message.Text)
 					if err != nil {
 						log.Println("Unable to generate completion:", err)
 						if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, m.Message.MID, BREAK); err != nil {
@@ -66,7 +66,7 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 						}
 						return
 					}
-					if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, m.Message.MID, completion); err != nil {
+					if _, err := messenger.SendMessage(m.Recipient.ID, m.Sender.ID, m.Message.MID, answer); err != nil {
 						log.Println("Unable to send a Messenger message:", err)
 					}
 				}()
@@ -83,26 +83,12 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	go func() {
-		//results, err := ddg.TextSearch(body.Message.Text)
-		//if err != nil {
-		//	log.Println("Unable to search text:", err)
-		//}
-		//
-		//for i, r := range results.Results {
-		//	results.Results[i].Title = removeHTMLBTag(r.Title)
-		//	results.Results[i].Body = formatString(r.Body)
-		//}
-		//
+
 		chatID := strconv.Itoa(body.Message.Chat.ID)
 		messageID := strconv.Itoa(body.Message.MessageID)
-		//for _, result := range results.Results {
-		//	if result.Title != "" {
-		//		if _, err := telegram.SendMessage(chatID, fmt.Sprintf("**%s**\n\n%s\n\nSource: %s", result.Title, result.Body, result.URL), messageID); err != nil {
-		//			log.Println("Unable to send a Telegram message:", err)
-		//		}
-		//	}
-		//}
-		completion, err := generateCompleteAnswer(body.Message.Text)
+
+		answer, _, err := processQuery(body.Message.Text)
+
 		if err != nil {
 			log.Println("Unable to generate completion:", err)
 			if _, err := telegram.SendMessage(chatID, BREAK, messageID); err != nil {
@@ -110,7 +96,7 @@ func handleTelegramMessages(w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		if _, err := telegram.SendMessage(chatID, completion, messageID); err != nil {
+		if _, err := telegram.SendMessage(chatID, answer, messageID); err != nil {
 			log.Println("Unable to send a Telegram message:", err)
 		}
 	}()
