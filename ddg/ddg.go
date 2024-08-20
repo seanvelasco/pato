@@ -10,12 +10,7 @@ import (
 	"net/url"
 )
 
-func SearchAssist(query string) (SearchAssistResults, error) {
-	vqd, err := getSearchVQD(query)
-
-	if err != nil {
-		return SearchAssistResults{}, err
-	}
+func SearchAssist(query string, vqd string) (SearchAssistResults, error) {
 
 	u, _ := url.Parse(ASSIST_ENDPOINT)
 	q := u.Query()
@@ -89,14 +84,7 @@ func SearchSuggestions(query string) (SuggestionResults, error) {
 	return body, nil
 }
 
-func TextSearch(query string) (TextResults, error) {
-	vqd, err := getSearchVQD(query)
-
-	if err != nil {
-		return TextResults{}, err
-	}
-
-	log.Println("Search VQD:", vqd)
+func SearchText(query string, vqd string) (TextResults, error) {
 
 	u, _ := url.Parse(TEXT_ENDPOINT)
 
@@ -143,14 +131,7 @@ func TextSearch(query string) (TextResults, error) {
 	return body, nil
 }
 
-func ImageSearch(query string) (ImageResults, error) {
-	vqd, err := getSearchVQD(query)
-
-	if err != nil {
-		return ImageResults{}, err
-	}
-
-	log.Println("Search VQD:", vqd)
+func SearchImages(query string, vqd string) (ImageResults, error) {
 
 	u, _ := url.Parse(IMAGE_ENDPOINT)
 
@@ -195,7 +176,7 @@ func ImageSearch(query string) (ImageResults, error) {
 
 func Chat(content string) (io.ReadCloser, error) {
 
-	vqd, err := getChatVQD()
+	vqd, err := getChatHeaderWithVQD()
 
 	if err != nil {
 		return nil, err

@@ -24,7 +24,7 @@ func extractVQD(body []byte) (string, error) {
 	return strings.Trim(string(matches[1]), "\""), nil
 }
 
-func getSearchVQD(query string) (string, error) {
+func GetSearchVQD(query string) (string, error) {
 	u, _ := url.Parse(BASE)
 
 	body := &bytes.Buffer{} // new(bytes.Buffer)
@@ -60,7 +60,7 @@ func getSearchVQD(query string) (string, error) {
 	return extractVQD(bodyBytes)
 }
 
-func getChatVQD() (http.Header, error) {
+func getChatHeaderWithVQD() (http.Header, error) {
 	req, _ := http.NewRequest(http.MethodGet, CHAT_STATUS, nil)
 	req.Header.Set("x-vqd-accept", "1")
 	res, err := http.DefaultClient.Do(req)

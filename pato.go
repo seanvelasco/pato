@@ -46,35 +46,65 @@ func generateCompleteAnswer(prompt string) (string, error) {
 }
 
 func processQuery(query string) (string, []string, error) {
-	results, err := ddg.TextSearch(query)
-	images, err := ddg.ImageSearch(query)
+	log.Println("Getting VQD")
+	token, err := ddg.GetSearchVQD(query)
 
 	if err != nil {
 		return "", nil, err
 	}
+
+	log.Println("Retrieved VQD")
+
+	resultsChan := make(chan ddg.TextResults)
+	imagesChan := make(chan ddg.ImageResults)
+	errChan := make(chan error)
+
+	go func() {
+		log.Println("Starting to text search")
+		results, err := ddg.SearchText(query, token)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		log.Println("Retrieved results")
+		resultsChan <- results
+	}()
+
+	go func() {
+		log.Println("Starting to image search")
+		images, err := ddg.SearchImages(query, token)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		log.Println("Retrieved images")
+		imagesChan <- images
+	}()
 
 	var imageURLs []string
+	var reference string
 
-	for _, image := range images.Results {
-		validURL, _ := url.Parse(image.URL)
-		if validURL != nil {
-			imageURLs = append(imageURLs, validURL.String())
+	select {
+	case results := <-resultsChan:
+		for i, r := range results.Results {
+			//results.Results[i].Title = removeHTMLBTag(r.Title)
+			//results.Results[i].Body = formatString(r.Body)
+			if r.Body != "" {
+				results.Results[i].Body = formatString(r.Body)
+				reference += fmt.Sprintf("%s: %s (%s)\n\n", removeHTMLBTag(r.Title), formatString(r.Body), r.URL)
+			}
 		}
-	}
-
-	if err != nil {
+	case images := <-imagesChan:
+		for _, image := range images.Results {
+			validURL, _ := url.Parse(image.URL)
+			if validURL != nil {
+				imageURLs = append(imageURLs, validURL.String())
+			}
+		}
+	case err := <-errChan:
 		return "", nil, err
 	}
 
-	var reference string
-	for i, r := range results.Results {
-		//results.Results[i].Title = removeHTMLBTag(r.Title)
-		//results.Results[i].Body = formatString(r.Body)
-		if r.Body != "" {
-			results.Results[i].Body = formatString(r.Body)
-			reference += fmt.Sprintf("%s: %s (%s)\n\n", removeHTMLBTag(r.Title), formatString(r.Body), r.URL)
-		}
-	}
 	prompt := fmt.Sprintf(
 		"Answer the question or find more information to %s. "+
 			"The format of each source is 'TITLE: CONTENT (SOURCE)'. "+
